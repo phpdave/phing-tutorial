@@ -26,7 +26,10 @@
         <echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>
         <exec command="scp -rp ~/.ssh/id_rsa ./${buildDir}/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}" dir="." passthru="true" />
         <echo msg="::TODO:: copy files into a release directory"/>
+        <echo msg="::TODO:: Make Database changes required for this release"/>
+        <echo msg="::TODO:: After this point, if the process failes we need to rollback database changes"/>
         <echo msg="::TODO:: switch document root symlink to latest release directory"/>
+        <echo msg="::TODO:: Run PHPunit and selenium tests to verify the release is working in the new environment"/>
         <echo msg="::TODO:: figure out how to handle old releases as you may want to keep the old release out there in case you need a quick rollback"/>
         <echo msg="Running commands remotely on ${ssh.host}"/>
         <exec command="ssh ${ssh.user}@${ssh.host} 'bash -s' &lt; local_script.sh" dir="." passthru="true" />
