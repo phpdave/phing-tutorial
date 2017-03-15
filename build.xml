@@ -17,11 +17,17 @@
                 </fileset>
             </batchtest>
         </phpunit>-->
-        <echo msg="Current Directory"/>
+        <echo msg="Current Directory is"/>
         <exec command="pwd" dir="." passthru="true" />
-        <!--<echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>-->
-        <!--<exec command="scp -i ~/.ssh/id_rsa ./src/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}index.html" dir="." passthru="true" />-->
-        
+        <echo msg="Setting up a clone of the repo if it hasn't already been cloned"/>
+        <exec command="git clone https://github.com/phpdave/DB2-for-IBMi.git" dir="./${buildDir}" passthru="true" />
+        <echo msg="Pulling latest DB2 for IBMi project from github into build directory"/>
+        <exec command="git checkout master" dir="./${buildDir}" passthru="true" />
+        <echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>
+        <exec command="scp -rp ~/.ssh/id_rsa ./${buildDir}/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}" dir="." passthru="true" />
+        <echo msg="::TODO:: copy files into a release directory"/>
+        <echo msg="::TODO:: switch document root symlink to latest release directory"/>
+        <echo msg="::TODO:: figure out how to handle old releases as you may want to keep the old release out there in case you need a quick rollback"/>
         <echo msg="Running commands remotely on ${ssh.host}"/>
         <exec command="ssh ${ssh.user}@${ssh.host} 'bash -s' &lt; local_script.sh" dir="." passthru="true" />
         

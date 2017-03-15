@@ -1,1 +1,1 @@
-ls
+ls -l /QOpenSys/opt/freeware/share/nginx/html/
