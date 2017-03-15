@@ -1,5 +1,6 @@
 {
     "require-dev": {
-        "phing/phing": "3.0.x-dev"
+        "phing/phing": "3.0.x-dev",
+        "ext-ssh2": "*"
     }
 }

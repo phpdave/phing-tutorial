@@ -1,7 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="HelloWorld" default="welcome" basedir="." description="a demo project">
- <property name="message" value="Hello World!"/>
- <target name="welcome">
-  <echo msg="${message}"/>
- </target>
+<project name="LitmisSpaceDeploy" default="dev" basedir="." description="Demoing deploying to spaces.litmis.com">
+    <property name="StartingMessage" value="Phing has started"/>
+    <property name="buildDir" value="build"/>
+    <property name="srcDir" value="src"/>
+    <property name="destinationNginxDocRoot" value="/QOpenSys/opt/freeware/share/nginx/html/"/>
+    <property name="ssh.host" value="spaces.litmis.com"/>
+    <property name="ssh.user" value="usryb87r"/>
+    <property name="ssh.privkeyfile" value=""/>
+    <property name="ssh.dir" value="~"/>
+    <target name="dev">
+        <echo msg="${StartingMessage}"/>
+<!--        <phpunit printsummary="true" haltonfailure="true">
+            <batchtest>
+                <fileset dir="./tests">
+                    <include name="*Test.php"/>
+                </fileset>
+            </batchtest>
+        </phpunit>-->
+        <echo msg="Current Directory"/>
+        <exec command="pwd" dir="." passthru="true" />
+        <echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>
+        <exec command="scp -i ~/.ssh/id_rsa ./src/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}index.html" dir="." passthru="true" />
+    </target>
+    <target name="qc">
+        <echo msg="${StartingMessage}"/>
+    </target>
+    <target name="prod">
+        <echo msg="${StartingMessage}"/>
+    </target>
+    <target name="build" depends="dev">
+        <echo msg="Copying to build directory..."/>
+        <copy todir="${buildDir}">
+            <fileset refid="srcfiles"/>
+        </copy>
+    </target>
+    
+<!--    <ssh username="${ssh.user}" host="${ssh.host}" privkeyfile="${ssh.privkeyfile}" privkeyfilepassphrase="" command="pwd" property="mypwd" display="false" />
+<echo>The present working directory is ${mypwd}</echo>-->
+<!--    <scp
+        username="${ssh.user}" 
+        host="${ssh.host}" fetch="true"
+        todir="${ssh.dir}">
+        <fileset refid="srcfiles"/>
+    </scp>-->
+    <fileset id="srcfiles">
+        <include name="*.php"/>
+        <exclude name="*.tmp"/>
+    </fileset>
 </project>
