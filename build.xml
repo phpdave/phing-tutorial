@@ -19,8 +19,12 @@
         </phpunit>-->
         <echo msg="Current Directory"/>
         <exec command="pwd" dir="." passthru="true" />
-        <echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>
-        <exec command="scp -i ~/.ssh/id_rsa ./src/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}index.html" dir="." passthru="true" />
+        <!--<echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>-->
+        <!--<exec command="scp -i ~/.ssh/id_rsa ./src/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}index.html" dir="." passthru="true" />-->
+        
+        <echo msg="Running commands remotely on ${ssh.host}"/>
+        <exec command="ssh ${ssh.user}@${ssh.host} 'bash -s' &lt; local_script.sh" dir="." passthru="true" />
+        
     </target>
     <target name="qc">
         <echo msg="${StartingMessage}"/>
