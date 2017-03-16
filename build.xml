@@ -3,11 +3,18 @@
     <property name="StartingMessage" value="Phing has started"/>
     <property name="buildDir" value="build"/>
     <property name="srcDir" value="src"/>
-    <property name="destinationNginxDocRoot" value="/QOpenSys/opt/freeware/share/nginx/html/"/>
+    <property name="documentRootToSymboliclyLink" value="/QOpenSys/opt/freeware/share/nginx/html"/>
+    <property name="destinationNginxReleaseDirectory" value="/QOpenSys/opt/freeware/share/nginx/html/releases"/>
     <property name="ssh.host" value="spaces.litmis.com"/>
     <property name="ssh.user" value="usryb87r"/>
     <property name="ssh.privkeyfile" value=""/>
     <property name="ssh.dir" value="~"/>
+    <property name="git.cloneUrl" value="https://github.com/phpdave/DB2-for-IBMi.git"/>
+    <property name="git.promoteCommitId" value="34c0381cc683c38a8bd4d336f9b4859dce4a8d32"/>
+    <!--<property name="git.promoteCommitId" value="b0c21b3b13b51dfa5effc3e9a3bfe603d4783217"/>-->
+    <property name="git.rollBackCommitId" value="b0c21b3b13b51dfa5effc3e9a3bfe603d4783217"/>
+    <property name="git.projectname" value="DB2-for-IBMi"/>
+    
     <target name="dev">
         <echo msg="${StartingMessage}"/>
 <!--        <phpunit printsummary="true" haltonfailure="true">
@@ -17,22 +24,32 @@
                 </fileset>
             </batchtest>
         </phpunit>-->
-        <echo msg="Current Directory is"/>
-        <exec command="pwd" dir="." passthru="true" />
-        <echo msg="Setting up a clone of the repo if it hasn't already been cloned"/>
-        <exec command="git clone https://github.com/phpdave/DB2-for-IBMi.git" dir="./${buildDir}" passthru="true" />
-        <echo msg="Pulling latest DB2 for IBMi project from github into build directory"/>
+<!--        <echo msg="Current Local Directory is"/>
+        <exec command="pwd" dir="." passthru="true" />-->
+        <echo msg="Setting up a clone of the repo ${git.cloneUrl} in the directory ./${buildDir} if it hasn't already been cloned"/>
+        <exec command="git clone ${git.cloneUrl}" dir="./${buildDir}" passthru="true" />
+        <echo msg="Checking out master branch of the ${git.projectname} project from github into build directory"/>
         <exec command="git checkout master" dir="./${buildDir}" passthru="true" />
-        <echo msg="Copying files to spaces.litmis.com into the Nginx Document root"/>
-        <exec command="scp -rp ~/.ssh/id_rsa ./${buildDir}/* ${ssh.user}@${ssh.host}:${destinationNginxDocRoot}" dir="." passthru="true" />
-        <echo msg="::TODO:: copy files into a release directory"/>
+        <echo msg="Resetting to commit id ${git.promoteCommitId} of the ${git.projectname} in build directory"/>
+        <exec command="git reset --hard ${git.promoteCommitId}" dir="./${buildDir}/${git.projectname}" passthru="true" />
+        <echo msg="Creating Release directory if it hasn't already been created: ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId}"/>
+        <exec command="ssh ${ssh.user}@${ssh.host} 'mkdir -p ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId}' " dir="." passthru="true" />
+        <echo msg="Deleting any old files in release directory"/>
+        <exec command="ssh ${ssh.user}@${ssh.host} 'rm -r ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId}/*' " dir="." passthru="true" />
+        <echo msg="Copying files to spaces.litmis.com into the Release directory ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId}"/>
+        <exec command="scp -rp ./${buildDir}/${git.projectname}/[!.]* ${ssh.user}@${ssh.host}:${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId}" dir="." passthru="true" />
+        <echo msg="ls of the release directory's project folder"/>
+        <exec command="ssh ${ssh.user}@${ssh.host} 'ls -l ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId}' " dir="." passthru="true" />
         <echo msg="::TODO:: Make Database changes required for this release"/>
         <echo msg="::TODO:: After this point, if the process failes we need to rollback database changes"/>
-        <echo msg="::TODO:: switch document root symlink to latest release directory"/>
+        <echo msg="::TODO:: switch document root symlink to the promoteCommitId release directory"/>
+        <echo msg="ln -sf ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId} ${documentRootToSymboliclyLink}/${git.projectname}"/>
+        <exec command="ssh ${ssh.user}@${ssh.host} 'ln -sf ${destinationNginxReleaseDirectory}/${git.projectname}/${git.promoteCommitId} ${documentRootToSymboliclyLink}/${git.projectname}' " dir="." passthru="true" />
+        
         <echo msg="::TODO:: Run PHPunit and selenium tests to verify the release is working in the new environment"/>
         <echo msg="::TODO:: figure out how to handle old releases as you may want to keep the old release out there in case you need a quick rollback"/>
-        <echo msg="Running commands remotely on ${ssh.host}"/>
-        <exec command="ssh ${ssh.user}@${ssh.host} 'bash -s' &lt; local_script.sh" dir="." passthru="true" />
+<!--        <echo msg="Running commands remotely on ${ssh.host}"/>
+        <exec command="ssh ${ssh.user}@${ssh.host} 'bash -s' &lt; local_script.sh" dir="." passthru="true" />-->
         
     </target>
     <target name="qc">
